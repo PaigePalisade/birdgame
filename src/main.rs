@@ -1,4 +1,5 @@
 mod sprite;
+mod player;
 
 use std::time::Duration;
 

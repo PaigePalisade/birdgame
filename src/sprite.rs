@@ -1,15 +1,20 @@
-struct Sprite<'a> {
-    texture: sdl2::render::Texture<'a>,
-    x: f32,
-    y: f32,
-    scale: f32,
-    rotation: f64,
-    width: u32,
-    height: u32,
+pub struct Sprite<'a> {
+    pub texture: &'a sdl2::render::Texture<'a>,
+    pub x: f32,
+    pub y: f32,
+    pub scale: f32,
+    pub rotation: f64,
+    pub width: u32,
+    pub height: u32,
+}
+
+pub trait GameObj {
+    fn tick(&self, delta: f32);
+    fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>);
 }
 
 impl<'a> Sprite<'a> {
-    fn new(texture: sdl2::render::Texture<'a>) -> Sprite<'a> {
+    pub fn new(texture: &'a sdl2::render::Texture) -> Sprite<'a> {
         let query = texture.query();
         let width = query.width;
         let height = query.height;
@@ -24,7 +29,7 @@ impl<'a> Sprite<'a> {
         }
     }
 
-    fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+    pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
         let dest = sdl2::rect::Rect::new(
             self.x as i32,
             self.y as i32,
@@ -33,7 +38,7 @@ impl<'a> Sprite<'a> {
         );
 
         canvas.copy_ex(
-            &self.texture,
+            self.texture,
             None,
             dest,
             self.rotation,
