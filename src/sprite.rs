@@ -6,10 +6,12 @@ pub struct Sprite<'a> {
     pub rotation: f64,
     pub width: u32,
     pub height: u32,
+    pub flip_h: bool,
+    pub flip_v: bool,
 }
 
 pub trait GameObj {
-    fn tick(&self, delta: f32);
+    fn tick(&mut self, delta: f32, e: &sdl2::EventPump);
     fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>);
 }
 
@@ -26,13 +28,15 @@ impl<'a> Sprite<'a> {
             rotation: 0.0,
             width,
             height,
+            flip_h: false,
+            flip_v: false,
         }
     }
 
     pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
         let dest = sdl2::rect::Rect::new(
-            self.x as i32,
-            self.y as i32,
+            (self.x - (self.width as f32) / 2.0 * self.scale) as i32,
+            (self.y - (self.height as f32) / 2.0 * self.scale) as i32,
             (self.width as f32 * self.scale) as u32,
             (self.height as f32 * self.scale) as u32,
         );
@@ -43,8 +47,8 @@ impl<'a> Sprite<'a> {
             dest,
             self.rotation,
             None,
-            false,
-            false,
+            self.flip_h,
+            self.flip_v,
         ).unwrap();
     }
 }

@@ -1,12 +1,14 @@
 mod sprite;
 mod player;
 
-use std::time::Duration;
+use std::{time::{Instant}};
 
 use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect};
 
-const WIDTH: u32 = 1280;
-const HEIGHT: u32 = 720;
+use crate::{player::Player, sprite::GameObj};
+
+pub const WIDTH: u32 = 1280;
+pub const HEIGHT: u32 = 720;
 
 fn main() -> Result<(), String>{
     let sdl_context = sdl2::init()?;
@@ -23,10 +25,20 @@ fn main() -> Result<(), String>{
 
     canvas.set_draw_color(Color::RGB(0, 0, 0));
     let mut event_pump = sdl_context.event_pump().unwrap();
+    
     let texture_creator = canvas.texture_creator();
     let sky_texture = texture_creator.load_texture("assets/textures/sky.png")?;
+    let player_texture = texture_creator.load_texture("assets/textures/player.png")?;
+
+    let mut player = Player::new(&player_texture);
+
+    let mut last_frame = Instant::now();
+    let mut delta;
 
     'running: loop {
+        delta = ((Instant::now() - last_frame).as_nanos() as f32) / 1_000_000_000f32;
+        last_frame = Instant::now();
+        player.tick(delta, &event_pump);
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
@@ -38,8 +50,9 @@ fn main() -> Result<(), String>{
         }
         canvas.clear();
         canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
+        player.draw(&mut canvas);
         canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
+        println!("FPS: {}", 1.0 / delta);
     }
 
     Ok(())
