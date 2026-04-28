@@ -31,14 +31,14 @@ impl Vector2 {
             Vector2 { x: self.x / magn, y: self.y / magn }
         }
     }
-    pub fn rotated(&self, theta: f32) -> Vector2 {
+    pub fn rotated(&self, theta: f64) -> Vector2 {
         Vector2 {
-            x: self.x * theta.cos() - self.y * theta.sin(),
-            y: self.x * theta.sin() + self.y * theta.cos(),
+            x: (self.x as f64 * theta.cos() - self.y as f64 * theta.sin()) as f32,
+            y: (self.x as f64 * theta.sin() + self.y as f64 * theta.cos()) as f32,
         }
     }
-    pub fn angle(&self) -> f32 {
-        f32::atan2(self.y, self.x)
+    pub fn angle(&self) -> f64 {
+        f64::atan2(self.y as f64, self.x as f64)
     }
 }
 

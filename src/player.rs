@@ -54,7 +54,7 @@ impl<'a> Player<'a> {
         }
 
         if mouse_state.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left) && self.bullet_timer < 0.0 {
-            let bullet_vel = self.vel + Vector2::new(1.0, 0.0).rotated(self.rotation as f32) * 800.0;
+            let bullet_vel = self.vel + Vector2::new(1.0, 0.0).rotated(self.rotation) * 800.0;
             let bullet_pos = self.pos + bullet_vel.normalized() * 20.0;
             let bullet = Bullet::new(self.bullet_texture, bullet_pos, bullet_vel, bullet_vel.angle() as f64);
             player_bullets.push(bullet);

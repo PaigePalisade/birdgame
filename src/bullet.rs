@@ -26,7 +26,7 @@ impl<'a> Bullet<'a> {
     pub fn tick(&mut self, delta: f32) {
         self.pos = self.pos + self.vel * delta;
         if self.vel.length() < 500.0 {
-            self.vel = self.vel + self.vel.normalized() * 500.0;
+            self.vel = self.vel + self.vel.normalized() * 500.0 * delta;
         }
         if  self.pos.x < -100.0 || self.pos.y < -100.0 || self.pos.x > WIDTH as f32 || self.pos.y > HEIGHT as f32 {
             self.dead = true;

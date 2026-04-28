@@ -2,7 +2,7 @@ mod sprite;
 mod player;
 mod bullet;
 
-use std::{time::{Instant}};
+use std::time::{Duration, Instant};
 
 use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect};
 
@@ -10,6 +10,8 @@ use crate::{bullet::Bullet, player::Player};
 
 pub const WIDTH: u32 = 1280;
 pub const HEIGHT: u32 = 720;
+
+const MAX_FPS: f32 = 1000.0;
 
 fn main() -> Result<(), String>{
     let sdl_context = sdl2::init()?;
@@ -41,11 +43,11 @@ fn main() -> Result<(), String>{
     'running: loop {
         delta = ((Instant::now() - last_frame).as_nanos() as f32) / 1_000_000_000f32;
         last_frame = Instant::now();
-        player.tick(delta, &event_pump, &mut player_bullets);
-
         for i in 0..player_bullets.len() {
             player_bullets[i].tick(delta);
         }
+        player.tick(delta, &event_pump, &mut player_bullets);
+
         player_bullets.retain(|b| !b.dead);
 
         for event in event_pump.poll_iter() {
@@ -64,7 +66,8 @@ fn main() -> Result<(), String>{
             player_bullets[i].draw(&mut canvas);
         }
         canvas.present();
-        println!("FPS: {}", 1.0 / delta)
+        println!("FPS: {}", 1.0 / delta);
+        while 1_000_000_000f32 / ((Instant::now() - last_frame).as_nanos() as f32) >= MAX_FPS {}
     }
 
     Ok(())
