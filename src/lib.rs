@@ -17,7 +17,28 @@ impl Vector2 {
         Vector2 { x, y }
     }
     pub fn lerp(&self, other: Vector2, value: f32) -> Vector2 {
-        Vector2::new(lerp(self.x, other.x, value), lerp(self.y, other.y, value))
+        Vector2 { x: lerp(self.x, other.x, value), y: lerp(self.y, other.y, value) }
+    }
+    pub fn length(&self) -> f32 {
+        (self.x*self.x + self.y*self.y).sqrt()
+    }
+    pub fn normalized(&self) -> Vector2 {
+        let magn = self.length();
+        // value would not be meaningful if a zero vector is passed in
+        if magn == 0.0 {
+            Vector2 { x: 1.0, y: 0.0 }
+        } else {
+            Vector2 { x: self.x / magn, y: self.y / magn }
+        }
+    }
+    pub fn rotated(&self, theta: f32) -> Vector2 {
+        Vector2 {
+            x: self.x * theta.cos() - self.y * theta.sin(),
+            y: self.x * theta.sin() + self.y * theta.cos(),
+        }
+    }
+    pub fn angle(&self) -> f32 {
+        f32::atan2(self.y, self.x)
     }
 }
 

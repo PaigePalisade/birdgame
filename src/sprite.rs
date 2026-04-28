@@ -10,11 +10,6 @@ pub struct Sprite<'a> {
     pub flip_v: bool,
 }
 
-pub trait GameObj {
-    fn tick(&mut self, delta: f32, e: &sdl2::EventPump);
-    fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>);
-}
-
 impl<'a> Sprite<'a> {
     pub fn new(texture: &'a sdl2::render::Texture) -> Sprite<'a> {
         let query = texture.query();

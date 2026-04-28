@@ -1,30 +1,32 @@
 use birdgame::{RAD_TO_DEG, Vector2};
 
-use crate::{HEIGHT, WIDTH, sprite::{GameObj, Sprite}};
+use crate::{HEIGHT, WIDTH, bullet::Bullet, sprite::Sprite};
 
 pub struct Player<'a> {
     sprite: Sprite<'a>,
     pos: Vector2,
     vel: Vector2,
     rotation: f64,
+    bullet_texture: &'a sdl2::render::Texture<'a>,
+    bullet_timer: f32,
 }
 
 impl<'a> Player<'a> {
-    pub fn new(texture: &'a sdl2::render::Texture) -> Player<'a> {
+    pub fn new(texture: &'a sdl2::render::Texture, bullet_texture: &'a sdl2::render::Texture) -> Player<'a> {
         let mut out = Player {
             sprite: Sprite::new(texture),
             pos: Vector2::new((WIDTH as f32) / 2.0,(HEIGHT as f32) / 2.0),
             vel: Vector2::new(0.0,0.0),
             rotation: 0.0,
+            bullet_texture,
+            bullet_timer: 0.0,
         };
         out.sprite.scale = 2.0;
 
         out
     }
-}
-
-impl<'a> GameObj for Player<'a> {
-    fn tick(&mut self, delta: f32, e: &sdl2::EventPump) {
+    
+    pub fn tick(&mut self, delta: f32, e: &sdl2::EventPump, player_bullets: &mut Vec<Bullet<'a>>) {
         let mouse_state = e.mouse_state();
         let mouse_pos = Vector2::new(mouse_state.x() as f32, mouse_state.y() as f32);
         let mouse_diff = mouse_pos - self.pos;
@@ -51,8 +53,17 @@ impl<'a> GameObj for Player<'a> {
             self.vel.y = 0.0;
         }
 
+        if mouse_state.is_mouse_button_pressed(sdl2::mouse::MouseButton::Left) && self.bullet_timer < 0.0 {
+            let bullet_vel = self.vel + Vector2::new(1.0, 0.0).rotated(self.rotation as f32) * 800.0;
+            let bullet_pos = self.pos + bullet_vel.normalized() * 20.0;
+            let bullet = Bullet::new(self.bullet_texture, bullet_pos, bullet_vel, bullet_vel.angle() as f64);
+            player_bullets.push(bullet);
+            self.bullet_timer = 0.05;
+        }
 
         self.pos = self.pos + self.vel * delta;
+
+        self.bullet_timer -= delta;
 
         self.sprite.x = self.pos.x;
         self.sprite.y = self.pos.y;
@@ -60,8 +71,7 @@ impl<'a> GameObj for Player<'a> {
         self.sprite.rotation = self.rotation * RAD_TO_DEG;
     }
 
-    fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+    pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
         self.sprite.draw(canvas);
     }
-
 }
