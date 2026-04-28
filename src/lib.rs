@@ -16,7 +16,7 @@ impl Vector2 {
     pub fn new(x: f32, y: f32) -> Vector2 {
         Vector2 { x, y }
     }
-    pub fn lerp(&self, other: Vector2, value: f32) -> Vector2 {
+    pub fn lerp(self, other: Vector2, value: f32) -> Vector2 {
         Vector2 { x: lerp(self.x, other.x, value), y: lerp(self.y, other.y, value) }
     }
     pub fn length(&self) -> f32 {

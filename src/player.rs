@@ -1,6 +1,6 @@
 use birdgame::{RAD_TO_DEG, Vector2};
 
-use crate::{HEIGHT, WIDTH, bullet::Bullet, sprite::Sprite};
+use crate::{HEIGHT, SCALE, WIDTH, bullet::Bullet, healthbar::draw_healthbar, sprite::Sprite};
 
 pub struct Player<'a> {
     sprite: Sprite<'a>,
@@ -9,6 +9,7 @@ pub struct Player<'a> {
     rotation: f64,
     bullet_texture: &'a sdl2::render::Texture<'a>,
     bullet_timer: f32,
+    health: i32,
 }
 
 impl<'a> Player<'a> {
@@ -20,6 +21,7 @@ impl<'a> Player<'a> {
             rotation: 0.0,
             bullet_texture,
             bullet_timer: 0.0,
+            health: 75,
         };
         out.sprite.scale = 2.0;
 
@@ -28,11 +30,11 @@ impl<'a> Player<'a> {
     
     pub fn tick(&mut self, delta: f32, e: &sdl2::EventPump, player_bullets: &mut Vec<Bullet<'a>>) {
         let mouse_state = e.mouse_state();
-        let mouse_pos = Vector2::new(mouse_state.x() as f32, mouse_state.y() as f32);
+        let mouse_pos = Vector2::new(mouse_state.x() as f32, mouse_state.y() as f32) / SCALE;
         let mouse_diff = mouse_pos - self.pos;
         self.rotation = f64::atan2(mouse_diff.y as f64, mouse_diff.x as f64);
 
-        self.vel = self.vel.lerp(mouse_diff * 5.0, delta);
+        self.vel = Vector2::lerp(self.vel, mouse_diff * 5.0, delta);
 
         self.sprite.flip_v = mouse_diff.x < 0.0;
 
@@ -73,5 +75,6 @@ impl<'a> Player<'a> {
 
     pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
         self.sprite.draw(canvas);
+        draw_healthbar(canvas, self.pos, self.health);
     }
 }

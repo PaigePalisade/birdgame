@@ -1,8 +1,9 @@
 mod sprite;
 mod player;
 mod bullet;
+mod healthbar;
 
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect};
 
@@ -10,6 +11,7 @@ use crate::{bullet::Bullet, player::Player};
 
 pub const WIDTH: u32 = 1280;
 pub const HEIGHT: u32 = 720;
+pub const SCALE: f32 = 1.0;
 
 const MAX_FPS: f32 = 1000.0;
 
@@ -18,7 +20,7 @@ fn main() -> Result<(), String>{
     let video_subsystem = sdl_context.video()?;
 
     let window = video_subsystem
-        .window("Bird Wars", WIDTH, HEIGHT)
+        .window("Bird Wars", (WIDTH as f32 * SCALE) as u32, (HEIGHT as f32 * SCALE) as u32)
         .position_centered()
         .opengl()
         .build()
@@ -40,15 +42,17 @@ fn main() -> Result<(), String>{
     let mut last_frame = Instant::now();
     let mut delta;
 
+    canvas.set_scale(SCALE, SCALE)?;
+
     'running: loop {
         delta = ((Instant::now() - last_frame).as_nanos() as f32) / 1_000_000_000f32;
         last_frame = Instant::now();
         for i in 0..player_bullets.len() {
             player_bullets[i].tick(delta);
         }
-        player.tick(delta, &event_pump, &mut player_bullets);
-
         player_bullets.retain(|b| !b.dead);
+
+        player.tick(delta, &event_pump, &mut player_bullets);
 
         for event in event_pump.poll_iter() {
             match event {
@@ -61,10 +65,10 @@ fn main() -> Result<(), String>{
         }
         canvas.clear();
         canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
-        player.draw(&mut canvas);
         for i in 0..player_bullets.len() {
             player_bullets[i].draw(&mut canvas);
         }
+        player.draw(&mut canvas);
         canvas.present();
         println!("FPS: {}", 1.0 / delta);
         while 1_000_000_000f32 / ((Instant::now() - last_frame).as_nanos() as f32) >= MAX_FPS {}

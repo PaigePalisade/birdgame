@@ -29,14 +29,14 @@ impl<'a> Sprite<'a> {
     }
 
     pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
-        let dest = sdl2::rect::Rect::new(
-            (self.x - (self.width as f32) / 2.0 * self.scale) as i32,
-            (self.y - (self.height as f32) / 2.0 * self.scale) as i32,
-            (self.width as f32 * self.scale) as u32,
-            (self.height as f32 * self.scale) as u32,
+        let dest = sdl2::rect::FRect::new(
+            self.x - (self.width as f32) / 2.0 * self.scale,
+            self.y - (self.height as f32) / 2.0 * self.scale,
+            self.width as f32 * self.scale,
+            self.height as f32 * self.scale,
         );
 
-        canvas.copy_ex(
+        canvas.copy_ex_f(
             self.texture,
             None,
             dest,
