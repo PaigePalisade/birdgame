@@ -40,6 +40,10 @@ impl Vector2 {
     pub fn angle(&self) -> f64 {
         f64::atan2(self.y as f64, self.x as f64)
     }
+    pub fn dot(self, other: Vector2) -> f32{
+        self.x * other.x + self.y * other.y
+    }
+    pub const ZERO: Vector2 = Vector2 { x: 0.0, y: 0.0 };
 }
 
 impl ops::Add<Vector2> for Vector2 {
@@ -72,4 +76,80 @@ impl ops::Div<f32> for Vector2 {
     fn div(self, rhs: f32) -> Vector2 {
         Vector2 { x: self.x / rhs, y: self.y / rhs }
     }
+}
+
+// rotated rectangle intersection (I took this one from ChatGPT)
+
+fn get_corners(center: Vector2, half: Vector2, angle: f32) -> [Vector2; 4] {
+    let (s, c) = angle.sin_cos();
+
+    let axes = [
+        Vector2::new(c, s),      // x-axis rotated
+        Vector2::new(-s, c),     // y-axis rotated
+    ];
+
+    let mut corners = [Vector2::ZERO; 4];
+    let signs = [
+        Vector2::new(-1.0, -1.0),
+        Vector2::new( 1.0, -1.0),
+        Vector2::new( 1.0,  1.0),
+        Vector2::new(-1.0,  1.0),
+    ];
+
+    for i in 0..4 {
+        corners[i] = center
+            + axes[0] * half.x * signs[i].x
+            + axes[1] * half.y * signs[i].y;
+    }
+
+    corners
+}
+
+fn get_axes(corners: &[Vector2; 4]) -> [Vector2; 2] {
+    let edge1 = corners[1] - corners[0];
+    let edge2 = corners[3] - corners[0];
+
+    [
+        edge1.normalized(),
+        edge2.normalized(),
+    ]
+}
+
+fn project(corners: &[Vector2; 4], axis: Vector2) -> (f32, f32) {
+    let mut min = corners[0].dot(axis);
+    let mut max = min;
+
+    for &corner in corners.iter().skip(1) {
+        let p = corner.dot(axis);
+        min = min.min(p);
+        max = max.max(p);
+    }
+
+    (min, max)
+}
+
+fn overlap(a: (f32, f32), b: (f32, f32)) -> bool {
+    a.0 <= b.1 && b.0 <= a.1
+}
+
+pub fn rectangles_intersect(
+    c1: Vector2, h1: Vector2, r1: f32,
+    c2: Vector2, h2: Vector2, r2: f32,
+) -> bool {
+    let corners1 = get_corners(c1, h1, r1);
+    let corners2 = get_corners(c2, h2, r2);
+
+    let axes1 = get_axes(&corners1);
+    let axes2 = get_axes(&corners2);
+
+    for axis in axes1.iter().chain(axes2.iter()) {
+        let p1 = project(&corners1, *axis);
+        let p2 = project(&corners2, *axis);
+
+        if !overlap(p1, p2) {
+            return false; // Found separating axis
+        }
+    }
+
+    true // No separating axis -> collision
 }

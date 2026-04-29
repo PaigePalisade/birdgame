@@ -4,7 +4,7 @@ use crate::{HEIGHT, SCALE, WIDTH, bullet::Bullet, healthbar::draw_healthbar, spr
 
 pub struct Player<'a> {
     sprite: Sprite<'a>,
-    pos: Vector2,
+    pub pos: Vector2,
     vel: Vector2,
     rotation: f64,
     bullet_texture: &'a sdl2::render::Texture<'a>,

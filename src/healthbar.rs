@@ -2,7 +2,7 @@ use birdgame::Vector2;
 use sdl2::{pixels::Color, rect::FRect};
 
 pub fn draw_healthbar(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>, pos: Vector2, health: i32) {
-    
+    let health = health.clamp(0, 100);
 
     let bg_rect = FRect::new(pos.x - 12.0, pos.y + 20.0, 24.0, 4.8);
 

@@ -2,6 +2,7 @@ mod sprite;
 mod player;
 mod bullet;
 mod healthbar;
+mod enemy;
 
 use std::time::Instant;
 
