@@ -1,6 +1,6 @@
-use birdgame::Vector2;
+use birdgame::{RAD_TO_DEG, Vector2};
 
-use crate::{HEIGHT, WIDTH, sprite::Sprite};
+use crate::{HEIGHT, WIDTH, healthbar::draw_healthbar, sprite::Sprite};
 
 pub struct Enemy<'a> {
     sprite: Sprite<'a>,
@@ -30,7 +30,18 @@ impl<'a> Enemy<'a> {
         out
     }
 
-    fn tick(delta: f32) {
+    pub fn tick(&mut self, delta: f32, player_pos: Vector2) {
+        self.health = self.health.max(0);
+        self.timer -= delta;
 
+        self.sprite.x = self.pos.x;
+        self.sprite.y = self.pos.y;
+
+        self.sprite.rotation = self.rotation * RAD_TO_DEG;
+    }
+
+    pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+        self.sprite.draw(canvas);
+        draw_healthbar(canvas, self.pos, self.health);
     }
 }

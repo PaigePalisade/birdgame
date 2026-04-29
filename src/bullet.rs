@@ -28,7 +28,7 @@ impl<'a> Bullet<'a> {
         if self.vel.length() < 500.0 {
             self.vel = self.vel + self.vel.normalized() * 500.0 * delta;
         }
-        if  self.pos.x < -100.0 || self.pos.y < -100.0 || self.pos.x > WIDTH as f32 || self.pos.y > HEIGHT as f32 {
+        if  self.pos.x < -100.0 || self.pos.y < -100.0 || self.pos.x > WIDTH as f32 + 100.0 || self.pos.y > HEIGHT as f32 + 100.0 {
             self.dead = true;
         }
 

@@ -8,11 +8,11 @@ use std::time::Instant;
 
 use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect};
 
-use crate::{bullet::Bullet, player::Player};
+use crate::{bullet::Bullet, enemy::Enemy, player::Player};
 
 pub const WIDTH: u32 = 1280;
 pub const HEIGHT: u32 = 720;
-pub const SCALE: f32 = 1.0;
+pub const SCALE: f32 = 1.5;
 
 const MAX_FPS: f32 = 1000.0;
 
@@ -36,9 +36,13 @@ fn main() -> Result<(), String>{
     let sky_texture = texture_creator.load_texture("assets/textures/sky.png")?;
     let player_texture = texture_creator.load_texture("assets/textures/player.png")?;
     let player_bullet_texture = texture_creator.load_texture("assets/textures/bullet.png")?;
+    let enemy_texture = texture_creator.load_texture("assets/textures/enemy.png")?;
+    let enemy_bullet_texture = texture_creator.load_texture("assets/textures/evilbullet.png")?;
 
     let mut player_bullets: Vec<Bullet> = vec![];
     let mut player = Player::new(&player_texture, &player_bullet_texture);
+
+    let mut enemy = Enemy::new(&enemy_texture, &enemy_bullet_texture, 12.0);
 
     let mut last_frame = Instant::now();
     let mut delta;
@@ -55,6 +59,8 @@ fn main() -> Result<(), String>{
 
         player.tick(delta, &event_pump, &mut player_bullets);
 
+        enemy.tick(delta, player.pos);
+
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
@@ -69,6 +75,7 @@ fn main() -> Result<(), String>{
         for i in 0..player_bullets.len() {
             player_bullets[i].draw(&mut canvas);
         }
+        enemy.draw(&mut canvas);
         player.draw(&mut canvas);
         canvas.present();
         println!("FPS: {}", 1.0 / delta);
