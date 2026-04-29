@@ -1,6 +1,6 @@
-use std::{f32::consts::PI, ops};
+use std::{f64::consts::PI, ops};
 
-pub const RAD_TO_DEG: f64 = 180.0 / (PI as f64);
+pub const RAD_TO_DEG: f64 = 180.0 / PI;
 
 #[derive(Copy, Clone)]
 pub struct Vector2 {
@@ -76,6 +76,18 @@ impl ops::Div<f32> for Vector2 {
     fn div(self, rhs: f32) -> Vector2 {
         Vector2 { x: self.x / rhs, y: self.y / rhs }
     }
+}
+
+// taken from Godot source code
+fn angle_difference(from: f64, to: f64) -> f64 {
+    let difference = (to - from) % (PI*2.0);
+    (2.0 * difference) % (PI*2.0) - difference
+}
+
+pub fn rotate_toward(from: f64, to: f64, delta: f32) -> f64 {
+    let difference = angle_difference(from, to);
+    let abs_difference = difference.abs();
+    from + (delta as f64).clamp(abs_difference - PI, abs_difference) * if difference >= 0.0 {1.0} else {-1.0}
 }
 
 // rotated rectangle intersection (I took this one from ChatGPT)

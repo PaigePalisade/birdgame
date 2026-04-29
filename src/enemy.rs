@@ -1,4 +1,4 @@
-use birdgame::{RAD_TO_DEG, Vector2};
+use birdgame::{RAD_TO_DEG, Vector2, rotate_toward};
 
 use crate::{HEIGHT, WIDTH, healthbar::draw_healthbar, sprite::Sprite};
 
@@ -33,6 +33,10 @@ impl<'a> Enemy<'a> {
     pub fn tick(&mut self, delta: f32, player_pos: Vector2) {
         self.health = self.health.max(0);
         self.timer -= delta;
+
+        let target_rotation = (player_pos - self.pos).angle();
+
+        self.rotation = rotate_toward(self.rotation, target_rotation, delta * 4.0);
 
         self.sprite.x = self.pos.x;
         self.sprite.y = self.pos.y;
