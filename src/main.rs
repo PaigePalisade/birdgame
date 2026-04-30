@@ -3,22 +3,26 @@ mod player;
 mod bullet;
 mod healthbar;
 mod enemy;
+mod collision;
+mod label;
 
 use std::time::Instant;
 
-use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect};
+use birdgame::Vector2;
+use sdl2::{EventPump, event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, ttf::Sdl2TtfContext, video::Window};
 
-use crate::{bullet::Bullet, enemy::Enemy, player::Player};
+use crate::{bullet::Bullet, collision::{enemy_bullets_collision, player_bullets_collision, player_enemy_collision}, enemy::Enemy, label::draw_text, player::Player};
 
 pub const WIDTH: u32 = 1280;
 pub const HEIGHT: u32 = 720;
-pub const SCALE: f32 = 1.5;
+pub const SCALE: f32 = 1.0;
 
 const MAX_FPS: f32 = 1000.0;
 
-fn main() -> Result<(), String>{
+fn main() -> Result<(), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
+    let ttf_context = sdl2::ttf::init().map_err(|e| e.to_string())?;
 
     let window = video_subsystem
         .window("Bird Wars", (WIDTH as f32 * SCALE) as u32, (HEIGHT as f32 * SCALE) as u32)
@@ -27,60 +31,116 @@ fn main() -> Result<(), String>{
         .build()
         .map_err(|e| e.to_string())?;
 
-    let mut canvas = window.into_canvas().build().unwrap();
+    let mut canvas: Canvas<sdl2::video::Window> = window.into_canvas().build().unwrap();
 
     canvas.set_draw_color(Color::RGB(0, 0, 0));
     let mut event_pump = sdl_context.event_pump().unwrap();
     
+    let mut score = 0;
+    let mut play_again = true;
+    while play_again {
+        play_again = game(&mut canvas, &mut event_pump, &mut score, &ttf_context)?;
+    }
+    
+    Ok(())
+}
+
+fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut i32, ttf_context: &Sdl2TtfContext) -> Result<bool, String> {
     let texture_creator = canvas.texture_creator();
     let sky_texture = texture_creator.load_texture("assets/textures/sky.png")?;
     let player_texture = texture_creator.load_texture("assets/textures/player.png")?;
     let player_bullet_texture = texture_creator.load_texture("assets/textures/bullet.png")?;
     let enemy_texture = texture_creator.load_texture("assets/textures/enemy.png")?;
     let enemy_bullet_texture = texture_creator.load_texture("assets/textures/evilbullet.png")?;
+    let explosion_texture = texture_creator.load_texture("assets/textures/explosion.png")?;
+
+    let pixel_font = ttf_context.load_font("assets/fonts/Kenney Pixel.ttf", 64)?;
 
     let mut player_bullets: Vec<Bullet> = vec![];
-    let mut player = Player::new(&player_texture, &player_bullet_texture);
+    let mut player = Player::new(&player_texture, &explosion_texture, &player_bullet_texture);
 
-    let mut enemy = Enemy::new(&enemy_texture, &enemy_bullet_texture, 12.0);
+    let mut enemy_bullets: Vec<Bullet> = vec![];
+    let mut enemies = vec![
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 12.0),
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 30.0),
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 60.0),
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 70.0),
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 200.0),
+        Enemy::new(&enemy_texture, &explosion_texture, &enemy_bullet_texture, 210.0),
+    ];
 
     let mut last_frame = Instant::now();
     let mut delta;
 
     canvas.set_scale(SCALE, SCALE)?;
 
+    let mut score_timer = 1.0f32;
+    *score = 0;
+
     'running: loop {
         delta = ((Instant::now() - last_frame).as_nanos() as f32) / 1_000_000_000f32;
         last_frame = Instant::now();
-        for i in 0..player_bullets.len() {
-            player_bullets[i].tick(delta);
+        score_timer -= delta;
+        
+        for bullet in &mut *player_bullets {
+            bullet.tick(delta);
         }
-        player_bullets.retain(|b| !b.dead);
+        for bullet in &mut *enemy_bullets {
+            bullet.tick(delta);
+        }
 
         player.tick(delta, &event_pump, &mut player_bullets);
+        
+        for enemy in &mut *enemies {
+            enemy.tick(delta, player.pos, &mut enemy_bullets);
+        }
+        
+        player_enemy_collision(&mut enemies, &mut player);
+        enemy_bullets_collision(&mut enemies, &mut player_bullets, score, &mut player.health);
+        player_bullets_collision(&mut player, &mut enemy_bullets);
+        
 
-        enemy.tick(delta, player.pos);
+        enemy_bullets.retain(|b| !b.dead);
+        player_bullets.retain(|b| !b.dead);
+        
+        if score_timer < 0.0 && player.health > 0 {
+            *score += 5;
+            score_timer = 1.0;
+        }
+
+        if player.health <= 0 && player.explosion_timer < 0.0 {
+            break 'running
+        }
 
         for event in event_pump.poll_iter() {
             match event {
                 Event::Quit {..} |
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
-                    break 'running
+                    return Ok(false);
                 },
                 _ => {}
             }
         }
         canvas.clear();
         canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
-        for i in 0..player_bullets.len() {
-            player_bullets[i].draw(&mut canvas);
+        
+        draw_text(canvas, &pixel_font, Vector2::new(20.0, HEIGHT as f32 - 64.0), Color::RGB(0, 0, 0), &format!("Score: {}", score), &texture_creator)?;
+
+        for bullet in &mut *player_bullets {
+            bullet.draw(canvas);
         }
-        enemy.draw(&mut canvas);
-        player.draw(&mut canvas);
+        for bullet in &mut *enemy_bullets {
+            bullet.draw(canvas);
+        }
+        for enemy in &mut *enemies {
+            enemy.draw(canvas);
+        }
+    
+        player.draw(canvas);
         canvas.present();
         println!("FPS: {}", 1.0 / delta);
         while 1_000_000_000f32 / ((Instant::now() - last_frame).as_nanos() as f32) >= MAX_FPS {}
     }
 
-    Ok(())
+    Ok(true)
 }

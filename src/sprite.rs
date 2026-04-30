@@ -29,11 +29,15 @@ impl<'a> Sprite<'a> {
     }
 
     pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
+        let query = self.texture.query();
+        let width = query.width;
+        let height = query.height;
+
         let dest = sdl2::rect::FRect::new(
             self.x - (self.width as f32) / 2.0 * self.scale,
             self.y - (self.height as f32) / 2.0 * self.scale,
-            self.width as f32 * self.scale,
-            self.height as f32 * self.scale,
+            width as f32 * self.scale,
+            height as f32 * self.scale,
         );
 
         canvas.copy_ex_f(

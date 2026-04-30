@@ -10,8 +10,9 @@ pub fn draw_healthbar(canvas: &mut sdl2::render::Canvas<sdl2::video::Window>, po
 
     canvas.set_draw_color(Color::RGB(255, 0, 0));
     canvas.fill_frect(bg_rect).unwrap();
-    canvas.set_draw_color(Color::RGB(0, 255, 0));
-    canvas.fill_frect(fg_rect).unwrap();
-
+    if health != 0 {
+        canvas.set_draw_color(Color::RGB(0, 255, 0));
+        canvas.fill_frect(fg_rect).unwrap();
+    }
     canvas.set_draw_color(Color::RGB(0, 0, 0));
 }

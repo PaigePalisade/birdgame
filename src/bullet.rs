@@ -1,6 +1,6 @@
 use birdgame::{RAD_TO_DEG, Vector2};
 
-use crate::{HEIGHT, WIDTH, sprite::Sprite};
+use crate::{HEIGHT, WIDTH, collision::CollisionRect, sprite::Sprite};
 
 pub struct Bullet<'a> {
     sprite: Sprite<'a>,
@@ -8,6 +8,7 @@ pub struct Bullet<'a> {
     vel: Vector2,
     rotation: f64,
     pub dead: bool,
+    pub bounding_box: CollisionRect,
 }
 
 impl<'a> Bullet<'a> {
@@ -17,7 +18,8 @@ impl<'a> Bullet<'a> {
             pos,
             vel,
             rotation,
-            dead: false
+            dead: false,
+            bounding_box: CollisionRect::new(Vector2::ZERO, 14.0, 6.0, 0.0),
         };
         out.sprite.scale = 2.0;
         out
@@ -35,6 +37,9 @@ impl<'a> Bullet<'a> {
         self.sprite.x = self.pos.x;
         self.sprite.y = self.pos.y;
         self.sprite.rotation = self.rotation * RAD_TO_DEG;
+
+        self.bounding_box.center = self.pos;
+        self.bounding_box.rotation = self.rotation;
     }
 
     pub fn draw(&self, canvas: &mut sdl2::render::Canvas<sdl2::video::Window>) {
