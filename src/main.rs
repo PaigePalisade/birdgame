@@ -9,7 +9,7 @@ mod label;
 use std::time::Instant;
 
 use birdgame::Vector2;
-use sdl2::{EventPump, event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, ttf::Sdl2TtfContext, video::Window};
+use sdl2::{EventPump, event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, ttf::{FontStyle, Sdl2TtfContext}, video::Window};
 
 use crate::{bullet::Bullet, collision::{enemy_bullets_collision, player_bullets_collision, player_enemy_collision}, enemy::Enemy, label::draw_text, player::Player};
 
@@ -39,10 +39,71 @@ fn main() -> Result<(), String> {
     let mut score = 0;
     let mut play_again = true;
     while play_again {
-        play_again = game(&mut canvas, &mut event_pump, &mut score, &ttf_context)?;
+
+        play_again = welcome(&mut canvas, &mut event_pump, &mut score, &ttf_context)? &&
+                     game(&mut canvas, &mut event_pump, &mut score, &ttf_context)?;
     }
     
     Ok(())
+}
+
+fn welcome<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut i32, ttf_context: &Sdl2TtfContext) -> Result<bool, String> {
+    let texture_creator = canvas.texture_creator();
+    let sky_texture = texture_creator.load_texture("assets/textures/sky.png")?;
+    let pixel_font = ttf_context.load_font("assets/fonts/Kenney Pixel.ttf", 64)?;
+    let future_font = ttf_context.load_font("assets/fonts/Kenney Future Narrow.ttf", 96)?;
+    let mut sans_font = ttf_context.load_font("assets/fonts/OpenSans.ttf", 32)?;
+
+    sans_font.set_style(FontStyle::BOLD);
+
+    loop {
+        for event in event_pump.poll_iter() {
+            match event {
+                Event::Quit {..} |
+                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
+                    return Ok(false);
+                },
+                Event::MouseButtonDown { .. } => {
+                    return Ok(true)
+                },
+                _ => {}
+            }
+        }
+        canvas.clear();
+        canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
+        
+        draw_text(canvas,
+            &pixel_font,
+            Vector2::new(
+            20.0, HEIGHT as f32 - 64.0),
+            false,
+            Color::RGB(0, 0, 0),
+            &format!("Score: {}", score),
+            &texture_creator,
+        )?;
+
+        draw_text(canvas,
+            &future_font,
+            Vector2::new(
+            WIDTH as f32 / 2.0, HEIGHT as f32 / 2.0 - 100.0),
+            true,
+            Color::RGB(27, 33, 52),
+            " Bird Wars",
+            &texture_creator,
+        )?;
+        
+        draw_text(canvas,
+            &sans_font,
+            Vector2::new(
+            WIDTH as f32 / 2.0, HEIGHT as f32 / 2.0),
+            true,
+            Color::RGB(27, 33, 52),
+            "Click Anywhere to Play!",
+            &texture_creator,
+        )?;
+
+        canvas.present();
+    }
 }
 
 fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut i32, ttf_context: &Sdl2TtfContext) -> Result<bool, String> {
@@ -77,7 +138,7 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
     let mut score_timer = 1.0f32;
     *score = 0;
 
-    'running: loop {
+    loop {
         delta = ((Instant::now() - last_frame).as_nanos() as f32) / 1_000_000_000f32;
         last_frame = Instant::now();
         score_timer -= delta;
@@ -109,7 +170,7 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
         }
 
         if player.health <= 0 && player.explosion_timer < 0.0 {
-            break 'running
+            return Ok(true);
         }
 
         for event in event_pump.poll_iter() {
@@ -124,7 +185,15 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
         canvas.clear();
         canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
         
-        draw_text(canvas, &pixel_font, Vector2::new(20.0, HEIGHT as f32 - 64.0), Color::RGB(0, 0, 0), &format!("Score: {}", score), &texture_creator)?;
+        draw_text(canvas,
+            &pixel_font,
+            Vector2::new(
+            20.0, HEIGHT as f32 - 64.0),
+            false,
+            Color::RGB(0, 0, 0),
+            &format!("Score: {}", score),
+            &texture_creator,
+        )?;
 
         for bullet in &mut *player_bullets {
             bullet.draw(canvas);
@@ -141,6 +210,4 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
         println!("FPS: {}", 1.0 / delta);
         while 1_000_000_000f32 / ((Instant::now() - last_frame).as_nanos() as f32) >= MAX_FPS {}
     }
-
-    Ok(true)
 }
