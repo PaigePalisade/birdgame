@@ -64,10 +64,10 @@ fn welcome<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &
                 Event::KeyDown { keycode: Some(Keycode::F11), .. } => {
                     let window = canvas.window_mut(); 
                     window.set_fullscreen(
-                        if window.fullscreen_state() == FullscreenType::True {
+                        if window.fullscreen_state() == FullscreenType::Desktop {
                             FullscreenType::Off
                         } else {
-                            FullscreenType::True
+                            FullscreenType::Desktop
                         }
                     )?;
                 },
@@ -179,10 +179,10 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
                 Event::KeyDown { keycode: Some(Keycode::F11), .. } => {
                     let window = canvas.window_mut(); 
                     window.set_fullscreen(
-                        if window.fullscreen_state() == FullscreenType::True {
+                        if window.fullscreen_state() == FullscreenType::Desktop {
                             FullscreenType::Off
                         } else {
-                            FullscreenType::True
+                            FullscreenType::Desktop
                         }
                     )?;
                 },
