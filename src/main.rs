@@ -61,6 +61,16 @@ fn welcome<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     return Ok(false);
                 },
+                Event::KeyDown { keycode: Some(Keycode::F11), .. } => {
+                    let window = canvas.window_mut(); 
+                    window.set_fullscreen(
+                        if window.fullscreen_state() == FullscreenType::True {
+                            FullscreenType::Off
+                        } else {
+                            FullscreenType::True
+                        }
+                    )?;
+                },
                 Event::MouseButtonDown { .. } => {
                     return Ok(true)
                 },
