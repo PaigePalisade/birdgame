@@ -1,7 +1,7 @@
 use birdgame::{RAD_TO_DEG, Vector2};
-use sdl2::render::Texture;
+use sdl2::{rect::Rect, render::Texture};
 
-use crate::{HEIGHT, SCALE, WIDTH, bullet::Bullet, collision::CollisionRect, healthbar::draw_healthbar, sprite::Sprite};
+use crate::{HEIGHT, WIDTH, bullet::Bullet, collision::CollisionRect, healthbar::draw_healthbar, sprite::Sprite};
 
 pub struct Player<'a> {
     sprite: Sprite<'a>,
@@ -35,13 +35,14 @@ impl<'a> Player<'a> {
         out
     }
     
-    pub fn tick(&mut self, delta: f32, e: &sdl2::EventPump, player_bullets: &mut Vec<Bullet<'a>>) {
+    pub fn tick(&mut self, delta: f32, e: &sdl2::EventPump, player_bullets: &mut Vec<Bullet<'a>>, display_scale: f32, display_rect: Rect) {
         if self.health <= 0 {
             self.explosion_timer -= delta;
             self.sprite.texture = self.explosion_texture;
+            return;
         }
         let mouse_state = e.mouse_state();
-        let mouse_pos = Vector2::new(mouse_state.x() as f32, mouse_state.y() as f32) / SCALE;
+        let mouse_pos = Vector2::new(mouse_state.x() as f32, mouse_state.y() as f32) / display_scale - Vector2::new(display_rect.x as f32, display_rect.y as f32);
         let mouse_diff = mouse_pos - self.pos;
         self.rotation = f64::atan2(mouse_diff.y as f64, mouse_diff.x as f64);
 
