@@ -217,8 +217,6 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
             return Ok(true);
         }
 
-        
-
         canvas.clear();
         canvas.copy(&sky_texture, None, Rect::new(0,0,WIDTH,HEIGHT))?;
         
