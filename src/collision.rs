@@ -44,7 +44,7 @@ pub fn enemy_bullets_collision(enemies: &mut Vec<Enemy>, player_bullets: &mut Ve
                 enemy.health -= 40;
                 bullet.dead = true;
                 *score += 10;
-                if enemy.health <= 0 {
+                if enemy.health <= 0 && *player_health > 0 {
                     *player_health = (*player_health + 5).min(100);
                     *score += 100;
                 }
