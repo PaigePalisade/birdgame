@@ -9,7 +9,7 @@ mod label;
 use std::time::Instant;
 
 use birdgame::Vector2;
-use sdl2::{EventPump, event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, ttf::Sdl2TtfContext, video::Window};
+use sdl2::{EventPump, event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas, ttf::Sdl2TtfContext, video::{FullscreenType, Window}};
 
 use crate::{bullet::Bullet, collision::{enemy_bullets_collision, player_bullets_collision, player_enemy_collision}, enemy::Enemy, label::draw_text, player::Player};
 
@@ -165,6 +165,16 @@ fn game<'a>(canvas: &mut Canvas<Window>, event_pump: &mut EventPump, score: &mut
                 Event::Quit {..} |
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => {
                     return Ok(false);
+                },
+                Event::KeyDown { keycode: Some(Keycode::F11), .. } => {
+                    let window = canvas.window_mut(); 
+                    window.set_fullscreen(
+                        if window.fullscreen_state() == FullscreenType::True {
+                            FullscreenType::Off
+                        } else {
+                            FullscreenType::True
+                        }
+                    )?;
                 },
                 _ => {}
             }
